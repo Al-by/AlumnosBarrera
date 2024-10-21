@@ -1,0 +1,45 @@
+# --- Backend (Spring Boot) ---
+# Maven/Gradle build files
+/target/
+/out/
+/build/
+/bin/
+
+# IDE files
+/.idea/
+/*.iml
+/.project
+/.classpath
+/.settings/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+*.env
+
+# Compiled class files
+*.class
+*.jar
+*.war
+*.ear
+
+# --- Frontend (Angular) ---
+/dist/
+/build/
+/out-tsc/
+node_modules/
+npm-debug.log
+yarn-error.log
+.angular/
+/.idea/
+/*.iml
+/.vscode/
+
+# --- Exclude ENTREGABLE folder ---
+/ENTREGABLE/
