@@ -29,8 +29,8 @@ CREATE TABLE ALUMNO (
 -- Insertar datos en la tabla USUARIO
 INSERT INTO USUARIO (nombre, apellido, email, password, fecha)
 VALUES 
-('Javier', 'Galarza Calderon', 'javier2024@cibertec.edu.pe', 'cibertec', '2024-10-21'),
-('Alvaro', 'Barrera Yulgo', 'alvaro@cibertec.edu.pe', 'alvaro', '2024-10-21');
+('Javier', 'Galarza Calderon', 'javier2024@cibertec.edu.pe', '$2a$10$neNG/icRoMrBXrIGgJhq2uCY1B5b43Jb8EjP6wnKr6qpvK3cboA.S', '2024-10-21'),
+('Alvaro', 'Barrera Yulgo', 'alvaro@cibertec.edu.pe', '$2a$10$mHYzrra4gm86IyN3q3.QAu83leXma6gXOlGpm4N6XkJMTYixArXTS', '2024-10-21');
 
 select * from USUARIO
 
