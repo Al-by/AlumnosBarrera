@@ -19,8 +19,8 @@ CREATE TABLE ALUMNO (
   nombre VARCHAR(50),
   apellido VARCHAR(50),
   dni VARCHAR(8),
-  ciclo INT,
-  estado VARCHAR(1),
+  ciclo INT CHECK (ciclo BETWEEN 1 AND 6),
+  estado VARCHAR(1) CHECK (estado IN ('A', 'I')),
   nombre_usuario VARCHAR(100),
   fecha DATE,
   FOREIGN KEY (nombre_usuario) REFERENCES USUARIO(email)
