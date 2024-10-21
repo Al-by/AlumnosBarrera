@@ -8,6 +8,7 @@ import com.cl3.alumnosbarrera.service.AlumnoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -89,13 +90,12 @@ public class AlumnoServiceImplement implements AlumnoService {
         }
     }
 
-
     @Override
     public ResponseEntity<Map<String, Object>> agregarAlumno(Alumno alumno) {
         Map<String, Object> respuesta = new HashMap<>();
 
         try {
-            // Mensaje de API en caso el ciclo no este entre 1 y 6
+            // Validar ciclo
             if (alumno.getCiclo() < 1 || alumno.getCiclo() > 6) {
                 respuesta.put("mensaje", "El ciclo debe estar entre 1 y 6");
                 respuesta.put("status", HttpStatus.BAD_REQUEST);
@@ -103,7 +103,7 @@ public class AlumnoServiceImplement implements AlumnoService {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(respuesta);
             }
 
-            // Mensaje de API en caso el estado no este entre A o I
+            // Validar estado
             if (!alumno.getEstado().equals("A") && !alumno.getEstado().equals("I")) {
                 respuesta.put("mensaje", "El estado solo puede ser A o I");
                 respuesta.put("status", HttpStatus.BAD_REQUEST);
@@ -111,18 +111,21 @@ public class AlumnoServiceImplement implements AlumnoService {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(respuesta);
             }
 
-            // Buscar el Usuario en la base de datos por email (Temporal)
-            //TODO CAMBIAR ESTO
-            Usuario usuarioExistente = usuarioRepository.findByEmail(alumno.getUsuario().getEmail());
+            // Obtener el usuario autenticado
+            String emailAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
+            Usuario usuarioExistente = usuarioRepository.findByEmail(emailAutenticado);
             if (usuarioExistente == null) {
-                respuesta.put("mensaje", "Usuario no encontrado");
+                respuesta.put("mensaje", "Usuario autenticado no encontrado");
                 respuesta.put("status", HttpStatus.BAD_REQUEST);
                 respuesta.put("fecha", new Date());
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(respuesta);
             }
+
+            // Asignar el usuario autenticado al alumno
             alumno.setUsuario(usuarioExistente);
-            alumno.setFecha(new Date());
+            alumno.setFecha(new Date());  // Actualizar fecha
             Alumno nuevoAlumno = dao.save(alumno);
+
             respuesta.put("alumno", nuevoAlumno);
             respuesta.put("mensaje", "Alumno agregado correctamente");
             respuesta.put("status", HttpStatus.CREATED);
@@ -138,18 +141,18 @@ public class AlumnoServiceImplement implements AlumnoService {
         }
     }
 
+
     @Override
     public ResponseEntity<Map<String, Object>> editarAlumno(Alumno alumno, Long id) {
         Map<String, Object> respuesta = new HashMap<>();
 
         try {
-            // Buscar el alumno por id
             Optional<Alumno> alumnoExistenteOpt = dao.findById(id);
 
             if (alumnoExistenteOpt.isPresent()) {
                 Alumno alumnoExistente = alumnoExistenteOpt.get();
 
-                // Mensaje de API en caso el ciclo no este entre 1 y 6
+                // Validar ciclo
                 if (alumno.getCiclo() < 1 || alumno.getCiclo() > 6) {
                     respuesta.put("mensaje", "El ciclo debe estar entre 1 y 6");
                     respuesta.put("status", HttpStatus.BAD_REQUEST);
@@ -157,7 +160,7 @@ public class AlumnoServiceImplement implements AlumnoService {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(respuesta);
                 }
 
-                // Mensaje de API en caso el estado no este entre A o I
+                // Validar estado
                 if (!alumno.getEstado().equals("A") && !alumno.getEstado().equals("I")) {
                     respuesta.put("mensaje", "El estado solo puede ser A o I");
                     respuesta.put("status", HttpStatus.BAD_REQUEST);
@@ -165,27 +168,26 @@ public class AlumnoServiceImplement implements AlumnoService {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(respuesta);
                 }
 
-                // Actualizar los campos del alumno existente
+                // Obtener el usuario autenticado
+                String emailAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
+                Usuario usuarioExistente = usuarioRepository.findByEmail(emailAutenticado);
+                if (usuarioExistente == null) {
+                    respuesta.put("mensaje", "Usuario autenticado no encontrado");
+                    respuesta.put("status", HttpStatus.BAD_REQUEST);
+                    respuesta.put("fecha", new Date());
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(respuesta);
+                }
+
+                // Actualizar los datos del alumno existente
                 alumnoExistente.setNombre(alumno.getNombre());
                 alumnoExistente.setApellido(alumno.getApellido());
                 alumnoExistente.setDni(alumno.getDni());
                 alumnoExistente.setCiclo(alumno.getCiclo());
                 alumnoExistente.setEstado(alumno.getEstado());
-
-                // Buscar el Usuario en la bd si el usuario es diferente
-                if (alumno.getUsuario() != null && alumno.getUsuario().getEmail() != null) {
-                    Usuario usuarioExistente = usuarioRepository.findByEmail(alumno.getUsuario().getEmail());
-                    if (usuarioExistente == null) {
-                        respuesta.put("mensaje", "Usuario no encontrado");
-                        respuesta.put("status", HttpStatus.BAD_REQUEST);
-                        respuesta.put("fecha", new Date());
-                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(respuesta);
-                    }
-                    alumnoExistente.setUsuario(usuarioExistente); // Asignar el usuario existente al alumno
-                }
-
-                alumnoExistente.setFecha(new Date());
+                alumnoExistente.setUsuario(usuarioExistente);  // Asignar usuario autenticado
+                alumnoExistente.setFecha(new Date());  // Actualizar fecha
                 dao.save(alumnoExistente);
+
                 respuesta.put("mensaje", "Alumno actualizado correctamente");
                 respuesta.put("alumno", alumnoExistente);
                 respuesta.put("status", HttpStatus.OK);
@@ -206,6 +208,7 @@ public class AlumnoServiceImplement implements AlumnoService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
         }
     }
+
 
     @Override
     public ResponseEntity<Map<String, Object>> eliminarAlumno(Long id) {
